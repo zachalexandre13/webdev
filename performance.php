@@ -1,4 +1,9 @@
 <?php
+if ($_SESSION["role"] !== "teller") {
+    echo "Access denied.";
+    exit();
+}
+
 require_once "includes/db.php";
 require_once "includes/auth.php";
 

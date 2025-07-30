@@ -2,7 +2,6 @@
 require_once "includes/db.php";
 require_once "includes/auth.php";
 
-// Get current user
 $user_id = $_SESSION["user_id"];
 
 $result = $conn->query("SELECT type, amount, timestamp FROM transactions WHERE user_id = $user_id ORDER BY timestamp DESC");

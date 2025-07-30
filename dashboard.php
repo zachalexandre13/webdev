@@ -11,12 +11,16 @@ $user = $result->fetch_assoc();
 <p>Account No: <?= $user['account_no'] ?></p>
 <p>Balance: ₱<?= number_format($user['balance'], 2) ?></p>
 
-<a href="deposit.php">Deposit</a><br>
-<a href="withdraw.php">Withdraw</a><br>
-<a href="queue.php">Join Queue</a><br>
-<a href="transactions.php">View Transactions</a><br>
+<?php if ($_SESSION["role"] === "customer"): ?>
+    <a href="deposit.php">Deposit</a><br>
+    <a href="withdraw.php">Withdraw</a><br>
+    <a href="transactions.php">View Transactions</a><br>
+<?php endif; ?>
+
 <?php if ($_SESSION["role"] === "teller"): ?>
     <a href="teller.php">Teller Panel</a><br>
     <a href="performance.php">Performance Report</a><br>
 <?php endif; ?>
+
 <a href="logout.php">Logout</a>
+
