@@ -2,17 +2,15 @@
 require_once "includes/db.php";
 require_once "includes/auth.php";
 
-// Restrict to tellers
 if ($_SESSION["role"] !== "teller") {
     echo "Access denied.";
     exit();
 }
 
 $teller_id = $_SESSION["user_id"];
-$step = $_POST["step"] ?? "choose"; // choose | serve
+$step = $_POST["step"] ?? "choose";
 $algorithm = $_POST["algorithm"] ?? null;
 
-// Round Robin state tracking
 if (!isset($_SESSION['rr_index'])) {
     $_SESSION['rr_index'] = 0;
 }
@@ -415,7 +413,8 @@ if (!isset($_SESSION['rr_index'])) {
                                     <th>Name</th>
                                     <th>Transaction</th>
                                     <th>Amount</th>
-                                    <th>Est. Time</th>
+                                    <th>Estimated Time</th>
+                                    <th>Remaining Time</th>
                                     <th>Joined At</th>
                                 </tr>
                                 <?php $pos = 1; ?>
@@ -425,7 +424,8 @@ if (!isset($_SESSION['rr_index'])) {
                                         <td><?= htmlspecialchars($q["name"]) ?></td>
                                         <td><?= $q["type"] ?></td>
                                         <td>₱<?= number_format($q["amount"], 2) ?></td>
-                                        <td><?= $q["estimated_time"] ?> min</td>
+                                        <td><?= $q["estimated_time"] ?> sec</td>
+                                        <td><?= $q["remaining_time"] ?> sec</td>
                                         <td><?= $q["queue_time"] ?></td>
                                     </tr>
                                 <?php endwhile; ?>
@@ -454,8 +454,11 @@ if (!isset($_SESSION['rr_index'])) {
                                 $index = $_SESSION['rr_index'] % count($rows);
                                 $_SESSION['rr_index']++;
                                 $row = $rows[$index];
+                                $time_slice = 10; 
+                                $wait_time = min($row['remaining_time'], $time_slice);
                             } else {
                                 $row = $rows[0];
+                                $wait_time = $row['estimated_time'];
                             }
 
                             $queue_id = $row["id"];
@@ -468,45 +471,46 @@ if (!isset($_SESSION['rr_index'])) {
 
                             $success = false;
 
-                            if ($type === "deposit") {
-                                $conn->query("UPDATE users SET balance = balance + $amount WHERE id = $customer_id");
-                                $success = true;
-                            } elseif ($type === "withdrawal") {
-                                if ($current_balance >= $amount) {
-                                    $conn->query("UPDATE users SET balance = balance - $amount WHERE id = $customer_id");
+                            if ($algorithm === "RR" && $row['remaining_time'] > 10) {
+                                $new_remaining = $row['remaining_time'] - 10;
+                                $conn->query("UPDATE queue SET remaining_time = $new_remaining WHERE id = $queue_id");
+                            } else {
+                                if ($type === "deposit") {
+                                    $conn->query("UPDATE users SET balance = balance + $amount WHERE id = $customer_id");
                                     $success = true;
-                                } else {
-                                    echo "<div class='error-message'><strong>Failed:</strong> Insufficient balance for withdrawal by $customer_name.</div>";
+                                } elseif ($type === "withdrawal") {
+                                    if ($current_balance >= $amount) {
+                                        $conn->query("UPDATE users SET balance = balance - $amount WHERE id = $customer_id");
+                                        $success = true;
+                                    } else {
+                                        echo "<div class='error-message'><strong>Failed:</strong> Insufficient balance for withdrawal by $customer_name.</div>";
+                                    }
+                                }
+
+                                if ($success) {
+                                    $conn->query("UPDATE transactions SET status = 'approved' WHERE id = $transaction_id");
+                                    $conn->query("UPDATE queue SET status = 'served', teller_id = $teller_id WHERE id = $queue_id");
+
+                                    $check = $conn->query("SELECT * FROM performance WHERE teller_id = $teller_id");
+                                    if ($check->num_rows == 0) {
+                                        $conn->query("INSERT INTO performance (teller_id, customers_served, total_wait_time) VALUES ($teller_id, 1, $wait_time)");
+                                    } else {
+                                        $conn->query("UPDATE performance SET customers_served = customers_served + 1, total_wait_time = total_wait_time + $wait_time WHERE teller_id = $teller_id");
+                                    }
                                 }
                             }
 
-                            if ($success) {
-                                $conn->query("UPDATE transactions SET status = 'approved' WHERE id = $transaction_id");
-                                $conn->query("UPDATE queue SET status = 'served', teller_id = $teller_id WHERE id = $queue_id");
-
-                                $check = $conn->query("SELECT * FROM performance WHERE teller_id = $teller_id");
-                                if ($check->num_rows == 0) {
-                                    $conn->query("INSERT INTO performance (teller_id, customers_served) VALUES ($teller_id, 1)");
-                                } else {
-                                    $conn->query("UPDATE performance SET customers_served = customers_served + 1 WHERE teller_id = $teller_id");
-                                }
-
-                                $wait_seconds = rand(5, 15);
-
-                                echo "
-                                    <div class='processing-message'>
-                                        <p><strong>Processing transaction for $customer_name...</strong></p>
-                                        <p>Estimated time: $wait_seconds seconds</p>
-                                    </div>
-                                    <script>
-                                        setTimeout(function() {
-                                            document.getElementById('result').innerHTML = 
-                                                '<div class=\"success-message\"><strong>Success:</strong> Served $customer_name. $type of ₱" . number_format($amount, 2) . " processed.</div>';
-                                        }, " . ($wait_seconds * 1000) . ");
-                                    </script>
-                                    <div id='result'></div>
-                                ";
-                            }
+                            echo "<div class='processing-message'>
+                                    <p><strong>Processing transaction for $customer_name...</strong></p>
+                                    <p>Estimated time: $wait_time seconds</p>
+                                </div>
+                                <script>
+                                    setTimeout(function() {
+                                        document.getElementById('result').innerHTML = 
+                                            '<div class=\"success-message\"><strong>Completed:</strong> $customer_name served ($type of ₱" . number_format($amount, 2) . ").</div>';
+                                    }, " . ($wait_time * 1000) . ");
+                                </script>
+                                <div id='result'></div>";
                         } else {
                             echo "<p class='no-customers'>No customers to serve at this time.</p>";
                         }

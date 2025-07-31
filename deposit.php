@@ -18,9 +18,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $check = $conn->query("SELECT * FROM queue WHERE user_id = $user_id AND status = 'waiting'");
     if ($check->num_rows == 0) {
-        $estimated_time = rand(3, 10);
-        $conn->query("INSERT INTO queue (user_id, transaction_id, estimated_time) 
-                      VALUES ($user_id, $transaction_id, $estimated_time)");
+        $estimated_time = rand(5, 15);
+        $conn->query("INSERT INTO queue (user_id, transaction_id, estimated_time, remaining_time) 
+                      VALUES ($user_id, $transaction_id, $estimated_time, $estimated_time)");
     }
 
     $success = true;
@@ -376,7 +376,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
             <div class="popup-content">
                 <p>Your deposit request has been submitted!</p>
-                <p>Estimated processing time: <?= $estimated_time ?? 5 ?> minutes</p>
+                <p>Estimated processing time: <?= $estimated_time ?? 5 ?> seconds</p>
                 <button class="popup-btn" onclick="window.location.href='dashboard.php'">Back to Dashboard</button>
             </div>
         </div>
