@@ -319,32 +319,36 @@ if (!isset($_SESSION['rr_index'])) {
                 <div class="icon" onclick="window.location.href='dashboard.php'">
                     <img src="https://cdn-icons-png.flaticon.com/512/2620/2620936.png" class="icon-img">
                     <div class="icon-label">Dashboard</div>
-                </div>
+                </div>    
 
-                <div class="icon" onclick="window.location.href='deposit.php'">
-                    <img src="https://png.pngtree.com/png-vector/20220611/ourmid/pngtree-wallet-deposit-icon-outline-vector-png-image_4983454.png" class="icon-img">
-                    <div class="icon-label">Deposit</div>
-                </div>
+                <?php if ($_SESSION["role"] !== "teller"): ?>
+                    <div class="icon" onclick="window.location.href='deposit.php'">
+                        <img src="https://png.pngtree.com/png-vector/20220611/ourmid/pngtree-wallet-deposit-icon-outline-vector-png-image_4983454.png" class="icon-img">
+                        <div class="icon-label">Deposit</div>
+                    </div>
 
-                <div class="icon" onclick="window.location.href='withdraw.php'">
-                    <img src="https://images.vexels.com/media/users/3/145760/isolated/preview/ae110700c75dee2112cb276b150d79e2-money-withdraw.png?w=360" class="icon-img">
-                    <div class="icon-label">Withdraw</div>
-                </div>
+                    <div class="icon" onclick="window.location.href='withdraw.php'">
+                        <img src="https://images.vexels.com/media/users/3/145760/isolated/preview/ae110700c75dee2112cb276b150d79e2-money-withdraw.png?w=360" class="icon-img">
+                        <div class="icon-label">Withdraw</div>
+                    </div>
+                <?php endif; ?>
 
                 <div class="icon" onclick="window.location.href='transactions.php'">
                     <img src="https://png.pngtree.com/png-vector/20220517/ourmid/pngtree-mobile-transfer-icon-color-flat-png-image_4665878.png" class="icon-img">
                     <div class="icon-label">Transactions</div>
                 </div>
 
-                <div class="icon" onclick="window.location.href='teller.php'">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2945/2945506.png" class="icon-img">
-                    <div class="icon-label">Teller Panel</div>
-                </div>
+                <?php if ($_SESSION["role"] === "teller"): ?>
+                    <div class="icon" onclick="window.location.href='teller.php'">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2945/2945506.png" class="icon-img">
+                        <div class="icon-label">Teller Panel</div>
+                    </div>
 
-                <div class="icon" onclick="window.location.href='performance.php'">
-                    <img src="https://cdn-icons-png.freepik.com/256/12454/12454072.png" class="icon-img">
-                    <div class="icon-label">Performance</div>
-                </div>
+                    <div class="icon" onclick="window.location.href='performance.php'">
+                        <img src="https://cdn-icons-png.freepik.com/256/12454/12454072.png" class="icon-img">
+                        <div class="icon-label">Performance</div>
+                    </div>
+                <?php endif; ?>
             </div>
 
             <div class="window">

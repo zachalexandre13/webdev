@@ -230,15 +230,17 @@ $user = $result->fetch_assoc();
                     <div class="icon-label">Dashboard</div>
                 </div>    
 
-                <div class="icon" onclick="window.location.href='deposit.php'">
-                    <img src="https://png.pngtree.com/png-vector/20220611/ourmid/pngtree-wallet-deposit-icon-outline-vector-png-image_4983454.png" class="icon-img">
-                    <div class="icon-label">Deposit</div>
-                </div>
+                <?php if ($_SESSION["role"] !== "teller"): ?>
+                    <div class="icon" onclick="window.location.href='deposit.php'">
+                        <img src="https://png.pngtree.com/png-vector/20220611/ourmid/pngtree-wallet-deposit-icon-outline-vector-png-image_4983454.png" class="icon-img">
+                        <div class="icon-label">Deposit</div>
+                    </div>
 
-                <div class="icon" onclick="window.location.href='withdraw.php'">
-                    <img src="https://images.vexels.com/media/users/3/145760/isolated/preview/ae110700c75dee2112cb276b150d79e2-money-withdraw.png?w=360" class="icon-img">
-                    <div class="icon-label">Withdraw</div>
-                </div>
+                    <div class="icon" onclick="window.location.href='withdraw.php'">
+                        <img src="https://images.vexels.com/media/users/3/145760/isolated/preview/ae110700c75dee2112cb276b150d79e2-money-withdraw.png?w=360" class="icon-img">
+                        <div class="icon-label">Withdraw</div>
+                    </div>
+                <?php endif; ?>
 
                 <div class="icon" onclick="window.location.href='transactions.php'">
                     <img src="https://png.pngtree.com/png-vector/20220517/ourmid/pngtree-mobile-transfer-icon-color-flat-png-image_4665878.png" class="icon-img">
@@ -271,7 +273,9 @@ $user = $result->fetch_assoc();
                     <div class="account-info">
                         <h2>Welcome, <?= htmlspecialchars($user['name']) ?>!</h2>
                         <p>Account No: <?= $user['account_no'] ?></p>
-                        <p class="balance">Balance: ₱<?= number_format($user['balance'], 2) ?></p>
+                        <?php if ($_SESSION["role"] !== "teller"): ?>
+                            <p class="balance">Balance: ₱<?= number_format($user['balance'], 2) ?></p>
+                        <?php endif; ?>
                     </div>
                     <button class="logout-btn" onclick="window.location.href='logout.php'">Logout</button>
                 </div>
